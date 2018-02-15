@@ -17,8 +17,15 @@ def checkT1s(T1_files, cw256=False):
     if len(T1_files) == 0:
         print("ERROR: No T1's Given")
         sys.exit(-1)
+<<<<<<< HEAD
 
     shape = nb.load(T1_files[0]).shape
+=======
+    f = nib.load((T1_files[0]))
+    shape = f.shape
+    voxel_size = f.header.get_zooms()
+    t1_size = f.header.get_data_shape()
+>>>>>>> 7b01a56a73d9b8b91f054d8b0fd9b5d9269ff07f
     for t1 in T1_files[1:]:
         if nb.load(t1, mmap=NUMPY_MMAP).shape != shape:
             print("ERROR: T1s not the same size. Cannot process {0} and {1} "
@@ -28,9 +35,11 @@ def checkT1s(T1_files, cw256=False):
     origvol_names = ["{0:03d}.mgz".format(i + 1) for i in range(len(T1_files))]
 
     # check if cw256 is set to crop the images if size is larger than 256
-    if not cw256 and any(dim > 256 for dim in shape):
+    if not cw256 and (voxel_size[0] * t1_size[0] > 256) or (voxel_size[1] * t1_size[1] > 256) or (voxel_size[2] * t1_size[2] > 256):
         print("Setting MRI Convert to crop images to 256 FOV")
         cw256 = True
+    else:
+        print("No need to add -cw256 flag")
 
     resample_type = 'cubic' if len(T1_files) > 1 else 'interpolate'
     return T1_files, cw256, resample_type, origvol_names
